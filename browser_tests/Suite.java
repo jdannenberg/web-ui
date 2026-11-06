@@ -137,8 +137,12 @@ public class Suite {
                 t("calendar moved to another account", () -> CalendarMigrationTest.run(args1));
                 // Four downloads of a 200MiB file, each left 30s to show it stopped.
                 t("cancel downloads", () -> CancelDownloadTest.run(args1));
+                // Another two accounts and four sign-ins, for an album that stays live as
+                // its owner adds a file and takes access away again.
+                t("an album shared between accounts", () -> PhotosShareTest.run(args1));
             }
             t("calendar store safety", () -> CalendarStoreTest.run(args1));
+            t("photos, tags and albums", () -> PhotosAlbumTest.run(args1));
             t("an entry with a DURATION is as long as it says", () -> CalendarDurationReadTest.run(args1));
             // An account of its own, so not on WebKit, which cannot be relied on to bring the
             // calendar up for an account opening it for the first time (see above).

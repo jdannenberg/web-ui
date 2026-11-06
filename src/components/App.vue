@@ -185,6 +185,7 @@ const NewsFeed = require("../views/NewsFeed.vue");
 const Social = require("../views/Social.vue");
 const AddressBook = require("../views/AddressBook.vue");
 const Calendar = require("../views/Calendar.vue");
+const Photos = require("../views/Photos.vue");
 const Launcher = require("../views/Launcher.vue");
 const SharedWith = require("../views/SharedWith.vue");
 const Sync = require("../views/Sync.vue");
@@ -226,6 +227,7 @@ module.exports = {
 		Social,
 		AddressBook,
 		Calendar,
+		Photos,
 		Launcher,
 		SharedWith,
                 Sync,
@@ -593,7 +595,7 @@ module.exports = {
 	    }
 
             const that = this;
-            const sidebarApps = ["Drive", "NewsFeed", "Social", "Calendar", "AddressBook", "Email", "Launcher", "SharedWith", "Sync", "Mount"]
+            const sidebarApps = ["Drive", "NewsFeed", "Social", "Calendar", "AddressBook", "Photos", "Email", "Launcher", "SharedWith", "Sync", "Mount"]
             const inDrive = this.currentView == "Drive";
             // Opened once the drive has listed the folder; before sign-in there is no drive yet.
             const whenListed = function (then) {

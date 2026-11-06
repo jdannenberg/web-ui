@@ -86,7 +86,7 @@ module.exports = {
                     "EXCHANGE_MESSAGES_WITH_FRIENDS", "USE_MAILBOX", "MANAGE_CONTACTS", "ACCESS_PROFILE_PHOTO", "CSP_UNSAFE_EVAL"];
                   let validTemplateValues = ["messaging", "messaging-instance"];
                   // these share .apps/<name> with built-in data, which uninstalling an app would delete
-                  let reservedAppNames = ["calendar", "contacts", "launcher"];
+                  let reservedAppNames = ["calendar", "contacts", "launcher", "photos"];
                   mandatoryFields.forEach(field => {
                       if (props[field] == null) {
                           errors.push("Missing property " + field);
@@ -454,7 +454,8 @@ module.exports = {
       },
       loadAllAppProperties: function(appDirectoryNames) {
           var appDirectories = appDirectoryNames.filter(n => n.getName() != "calendar" &&
-                                    n.getName() != "contacts" && n.getName() != "launcher");
+                                    n.getName() != "contacts" && n.getName() != "launcher" &&
+                                    n.getName() != "photos");
           let future = peergos.shared.util.Futures.incomplete();
           this.readAllAppProperties(appDirectories).thenApply(props => {
               // the same app on the same contacts as the menu's, so it isn't shown a second time.

@@ -60,7 +60,7 @@ module.exports = {
 		    warning_consumer_func: () => {}
 		};
 	},
-	props: ["files", "initialFileName", "hideGalleryTitle"],
+	props: ["files", "initialFileName", "initialIndex", "hideGalleryTitle"],
 	mixins: [downloaderMixins],
 	computed: {
 		...Vuex.mapState([
@@ -84,11 +84,19 @@ module.exports = {
 	},
 	created() {
 	    var showable = this.showableFiles;
-	    for (var i = 0; i < showable.length; i++) {
-		    if (showable[i].getFileProperties().name == this.initialFileName) {
-		        this.fileIndex = i;
-		        break;
-		    }
+	    if (this.initialIndex != null) {
+	        // a list built by the caller already knows which item was opened, even when
+	        // several of them share a name
+	        var index = Number(this.initialIndex);
+	        if (index >= 0 && index < showable.length)
+	            this.fileIndex = index;
+	    } else {
+	        for (var i = 0; i < showable.length; i++) {
+		        if (showable[i].getFileProperties().name == this.initialFileName) {
+		            this.fileIndex = i;
+		            break;
+		        }
+            }
         }
 	    console.log("Set initial gallery index to " + this.fileIndex);
 	    window.addEventListener("keyup", this.keyup);

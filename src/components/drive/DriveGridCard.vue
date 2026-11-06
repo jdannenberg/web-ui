@@ -1,10 +1,10 @@
 <template>
 	<article 
-        class="grid-card" :class="{selected: selected, 'menu-target': menuOpen}"
+        class="grid-card" :class="{selected: selected, 'menu-target': menuOpen, 'is-missing': missingLabel}"
         v-longpress="onLongPress" >
 
         <AppButton 
-            v-if="! isTouchLayout || selected || selecting"
+            v-if="! missingLabel && (! isTouchLayout || selected || selecting)"
             class="card__select" 
             :class="{selected: selected}" 
             :accent="selected" 
@@ -22,7 +22,7 @@
 		/>
 
 		<figure :id="itemIndex" 
-            :draggable="! isTouchLayout" @dragover.prevent @dragstart="dragstartFunc($event, file)" @drop="dropFunc($event, file)">
+            :draggable="! isTouchLayout && ! missingLabel" @dragover.prevent @dragstart="dragstartFunc($event, file)" @drop="dropFunc($event, file)">
 			<img
 				class="cover"
 				v-if="src"
@@ -33,6 +33,7 @@
 			<figcaption :class="{ 'name-open': nameOpen }">
 				<span class="card__name" :title="filename"
 					@click="toggleName">{{ filename }}</span>
+				<span v-if="missingLabel" class="card__missing">{{ missingLabel }}</span>
 				<ShareMark :kind="shared"/>
 			</figcaption>
 		</figure>
@@ -66,6 +67,9 @@ module.exports = {
 		'itemIndex',
         'selected',
         'shared',
+        // non-empty when the file no longer exists: says so beside the name and
+        // turns off selection and dragging
+        'missingLabel',
         // whether the user is picking files, which changes what a tap on the tile means
         'selecting',
         // asked, per file, whether this tile's menu should stand down
@@ -316,6 +320,27 @@ module.exports = {
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+.grid-card.is-missing {
+	border-style: dashed;
+	cursor: default;
+}
+
+.grid-card.is-missing .card__icon {
+	opacity: 0.35;
+}
+
+.grid-card .card__missing {
+	flex: none;
+	padding: 1px 6px;
+	border-radius: 9px;
+	color: var(--pg-muted);
+	background-color: var(--pg-surface-2);
+	font-size: 11px;
+	line-height: 16px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
 }
 
 /* both controls appear for the tile under the pointer, as they always have */

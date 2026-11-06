@@ -101,6 +101,8 @@
       <li id="cut" v-if="isWritable" @keyup.enter="cutMultiSelect()" @click="cutMultiSelect()">{{ translate("DRIVE.CUT") }}</li>
       <li id="download" @keyup.enter="downloadAllMultiSelect()" @click="downloadAllMultiSelect()">{{ translate("DRIVE.DOWNLOAD") }}</li>
       <li id="secret-link" v-if="allowSecretLinkMultiSelect" @keyup.enter="createSecretLinkMultiSelect()" @click="createSecretLinkMultiSelect()">{{ translate("DRIVE.SHARE.LINK") }}</li>
+      <li id="add-to-album" v-if="canTagSelection" @keyup.enter="showAddToAlbum" @click="showAddToAlbum">{{ translate("PHOTOS.ADD.TO.ALBUM") }}</li>
+      <li id="tag-files" v-if="canTagSelection" @keyup.enter="showTagEditorForSelection" @click="showTagEditorForSelection">{{ translate("PHOTOS.TAGS") }}</li>
       <li id="zip" @keyup.enter="zipAndDownloadMultiSelect()" @click="zipAndDownloadMultiSelect()">{{ translate("DRIVE.ZIP") }}</li>
       <li id="create-thumbnail" v-if="isWritable" @keyup.enter="createThumbnailMultiSelect()" @click="createThumbnailMultiSelect()">{{ translate("DRIVE.THUMB") }}</li>
       <li id="deselect" @keyup.enter="selectedFiles = []" @click="selectedFiles = []">
@@ -244,6 +246,12 @@
         >
           {{ translate("DRIVE.SHARE") }}
         </li>
+        <li id="add-to-album" v-if="canTagSelection" @keyup.enter="showAddToAlbum" @click="showAddToAlbum">
+          {{ translate("PHOTOS.ADD.TO.ALBUM") }}
+        </li>
+        <li id="tag-file" v-if="canTagSelection" @keyup.enter="showTagEditorForSelection" @click="showTagEditorForSelection">
+          {{ translate("PHOTOS.TAGS") }}
+        </li>
         <li
           id="zip-folder"
           v-if="allowDownloadFolder"
@@ -315,6 +323,19 @@
       :initial-file-name="appArgs.filename"
     >
     </Gallery>
+
+    <AlbumPicker
+      v-if="showAlbumPicker"
+      :paths="photoPathsToEdit"
+      @close="showAlbumPicker = false"
+      @done="albumAdded"
+    ></AlbumPicker>
+    <TagEditor
+      v-if="showTagEditor"
+      :paths="photoPathsToEdit"
+      @close="showTagEditor = false"
+      @done="tagsChanged"
+    ></TagEditor>
 
     <Hex
       v-if="showHexViewer && viewerFile"
@@ -468,6 +489,8 @@ const DriveGridDrop = require("../components/drive/DriveGridDrop.vue");
 const DriveTable = require("../components/drive/DriveTable.vue");
 const Error = require("../components/error/Error.vue");
 const Gallery = require("../components/drive/DriveGallery.vue");
+const AlbumPicker = require("../components/photos/AlbumPicker.vue");
+const TagEditor = require("../components/photos/TagEditor.vue");
 const Identity = require("../components/identity-proof-viewer.vue");
 const Share = require("../components/drive/DriveShare.vue");
 const SecretLink = require("../components/drive/SecretLink.vue");
@@ -527,6 +550,8 @@ module.exports = {
 		FileDetails,
 		ProgressBar,
 		Gallery,
+		AlbumPicker,
+		TagEditor,
 		Identity,
 		Share,
 		SecretLink,
@@ -627,6 +652,9 @@ module.exports = {
             sandboxAppName: '',
             appSandboxProps: null,
 			showSelect: false,
+			showAlbumPicker: false,
+			showTagEditor: false,
+			photoPathsToEdit: [],
 			showWarning: false,
 			showReplace: false,
 			warning_message: "",
@@ -718,6 +746,22 @@ module.exports = {
         // is not there - or sits under one that is - is the visible half of getting it wrong.
         selectionBarShown() {
             return this.picking && this.selectedFiles.length > 0;
+        },
+
+        // Tags and albums name a file by its owner-absolute path, without the leading slash.
+        selectedPhotoPaths() {
+            if (this.context == null || this.context.username == null || this.context.username.length == 0)
+                return [];
+            let base = this.getPath;
+            if (! base.endsWith("/"))
+                base += "/";
+            return this.selectedFiles.filter(file => ! file.isDirectory())
+                .map(file => (base + file.getName()).replace(/^\/+/, "").replace(/\/+/g, "/"))
+                .filter(path => path.length > 0);
+        },
+
+        canTagSelection() {
+            return this.archive == null && this.selectedPhotoPaths.length > 0;
         },
 
         // an empty folder you can write to: the one place the drop target belongs,
@@ -4248,6 +4292,26 @@ module.exports = {
 		selectFromMenu() {
 		    this.picking = true;
 		    this.closeMenu();
+		},
+		showAddToAlbum() {
+		    // A listing refresh clears selectedFiles; keep the paths the dialog was opened on.
+		    this.photoPathsToEdit = this.selectedPhotoPaths.slice();
+		    this.closeMenu();
+		    if (this.photoPathsToEdit.length > 0)
+		        this.showAlbumPicker = true;
+		},
+		showTagEditorForSelection() {
+		    this.photoPathsToEdit = this.selectedPhotoPaths.slice();
+		    this.closeMenu();
+		    if (this.photoPathsToEdit.length > 0)
+		        this.showTagEditor = true;
+		},
+		albumAdded(album) {
+		    this.showAlbumPicker = false;
+		    this.$toast(this.translate("PHOTOS.ADDED.TO.ALBUM").replace("$NAME", album.name));
+		},
+		tagsChanged() {
+		    this.$toast(this.translate("PHOTOS.TAGS.SAVED"));
 		},
 		closePasteMenu() {
 			this.viewPasteMenu = false
